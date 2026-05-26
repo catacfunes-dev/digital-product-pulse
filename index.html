@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Production Pulse AI — Demo</title>
+<style>
+  :root {
+    --blue-dark: #1B3A6B;
+    --blue-mid: #2E75B6;
+    --blue-light: #D5E8F0;
+    --accent: #F0A500;
+    --green: #27AE60;
+    --red: #E74C3C;
+    --orange: #E67E22;
+    --gray-bg: #F4F6F9;
+    --gray-light: #EAECF0;
+    --gray-text: #6B7280;
+    --white: #FFFFFF;
+    --text: #1A1A2E;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--gray-bg); color: var(--text); min-height: 100vh; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--blue-dark);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    height: 60px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 12px; }
+  .topbar-brand .pulse-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .topbar-brand h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .topbar-brand span { font-size: 12px; color: #A0B4CC; margin-top: 1px; display: block; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .topbar-badge { background: rgba(240,165,0,0.2); color: var(--accent); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(240,165,0,0.4); }
+  .topbar-user { width: 34px; height: 34px; background: var(--blue-mid); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; cursor: pointer; }
+
+  /* ── LAYOUT ── */
+  .layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 60px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar { background: white; border-right: 1px solid var(--gray-light); padding: 20px 0; }
+  .sidebar-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; color: var(--gray-text); letter-spacing: 1px; text-transform: uppercase; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; color: var(--gray-text); cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; }
+  .sidebar-item:hover { background: var(--gray-bg); color: var(--blue-mid); }
+  .sidebar-item.active { background: var(--blue-light); color: var(--blue-dark); border-left-color: var(--blue-mid); font-weight: 600; }
+  .sidebar-item .icon { width: 18px; text-align: center; font-size: 16px; }
+  .sidebar-divider { height: 1px; background: var(--gray-light); margin: 8px 16px; }
+
+  /* ── MAIN ── */
+  .main { padding: 28px; overflow-y: auto; }
+
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: var(--shadow); border-top: 3px solid transparent; }
+  .stat-card.blue { border-top-color: var(--blue-mid); }
+  .stat-card.green { border-top-color: var(--green); }
+  .stat-card.orange { border-top-color: var(--orange); }
+  .stat-card.red { border-top-color: var(--red); }
+  .stat-label { font-size: 12px; color: var(--gray-text); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 32px; font-weight: 800; margin: 6px 0 4px; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--gray-text); }
+
+  /* ── SECTION HEADER ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-title { font-size: 16px; font-weight: 700; color: var(--blue-dark); }
+  .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+  .btn-primary { background: var(--blue-mid); color: white; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { background: #d4920a; }
+  .btn-outline { background: white; color: var(--blue-mid); border: 1.5px solid var(--blue-mid); }
+  .btn-outline:hover { background: var(--blue-light); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── FILTERS ── */
+  .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-select { padding: 7px 12px; border: 1.5px solid var(--gray-light); border-radius: 8px; font-size: 13px; background: white; color: var(--text); cursor: pointer; }
+  .filter-search { padding: 7px 12px; border: 1.5px solid var(--gray-light); border-radius: 8px; font-size: 13px; background: white; color: var(--text); width: 200px; }
+  .filter-search:focus, .filter-select:focus { outline: none; border-color: var(--blue-mid); }
+
+  /* ── TABLE ── */
+  .table-wrapper { background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { background: var(--blue-dark); color: white; padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--gray-light); transition: background 0.1s; }
+  tbody tr:hover { background: var(--gray-bg); }
+  tbody tr:last-child { border-bottom: none; }
+  td { padding: 12px 16px; vertical-align: middle; }
+  td.code { font-family: monospace; font-size: 12px; color: var(--gray-text); font-weight: 600; }
+
+  /* ── BADGES ── */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: #D4EDDA; color: #155724; }
+  .badge-orange { background: #FFF3CD; color: #856404; }
+  .badge-red { background: #F8D7DA; color: #721C24; }
+  .badge-blue { background: var(--blue-light); color: var(--blue-dark); }
+  .badge-gray { background: var(--gray-light); color: var(--gray-text); }
+
+  .priority { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; }
+  .priority.alta { color: var(--red); }
+  .priority.media { color: var(--orange); }
+  .priority.baja { color: var(--green); }
+
+  /* ── AI PANEL ── */
+  .ai-panel { background: white; border-radius: 12px; box-shadow: var(--shadow); margin-top: 24px; overflow: hidden; }
+  .ai-panel-header { background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid)); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .ai-panel-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+  .ai-icon { width: 30px; height: 30px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .ai-panel-body { padding: 20px; }
+  .ai-loading { display: none; align-items: center; gap: 12px; color: var(--blue-mid); font-size: 14px; padding: 16px 0; }
+  .ai-loading.visible { display: flex; }
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--blue-light); border-top-color: var(--blue-mid); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .ai-result { display: none; }
+  .ai-result.visible { display: block; }
+  .ai-timestamp { font-size: 11px; color: var(--gray-text); margin-bottom: 14px; }
+  .ai-alert { border-left: 3px solid; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 12px; }
+  .ai-alert.critical { border-color: var(--red); background: #FEF2F2; }
+  .ai-alert.warning { border-color: var(--orange); background: #FFFBEB; }
+  .ai-alert.ok { border-color: var(--green); background: #F0FDF4; }
+  .ai-alert-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .ai-alert-code { font-family: monospace; font-size: 12px; font-weight: 700; color: var(--blue-dark); }
+  .ai-alert-level { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .critical .ai-alert-level { background: #FEE2E2; color: #991B1B; }
+  .warning .ai-alert-level { background: #FEF3C7; color: #92400E; }
+  .ok .ai-alert-level { background: #D1FAE5; color: #065F46; }
+  .ai-alert-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .ai-alert-action { margin-top: 8px; font-size: 12px; font-weight: 600; }
+  .critical .ai-alert-action { color: var(--red); }
+  .warning .ai-alert-action { color: var(--orange); }
+
+  .ai-empty { text-align: center; padding: 32px; color: var(--gray-text); font-size: 14px; }
+  .ai-empty .ai-empty-icon { font-size: 40px; margin-bottom: 8px; }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 16px; width: 520px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
+  .modal-header { background: var(--blue-dark); color: white; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0 4px; opacity: 0.7; }
+  .modal-close:hover { opacity: 1; }
+  .modal-body { padding: 24px; }
+  .form-row { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 700; color: var(--gray-text); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+  .form-input, .form-select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--gray-light); border-radius: 8px; font-size: 14px; color: var(--text); background: white; }
+  .form-input:focus, .form-select:focus { outline: none; border-color: var(--blue-mid); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-footer { padding: 0 24px 20px; display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ── TOAST ── */
+  .toast { position: fixed; bottom: 28px; right: 28px; background: var(--blue-dark); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transform: translateY(80px); opacity: 0; transition: all 0.3s; z-index: 300; display: flex; align-items: center; gap: 10px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--green); }
+  .toast.warning { background: var(--accent); }
+
+  /* ── MISC ── */
+  .days-badge { font-size: 11px; font-weight: 600; }
+  .days-ok { color: var(--green); }
+  .days-warn { color: var(--orange); }
+  .days-crit { color: var(--red); }
+  .progress-bar-wrap { width: 80px; height: 6px; background: var(--gray-light); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px; }
+  .progress-bar-fill { height: 100%; border-radius: 3px; }
+  .actions-cell { display: flex; gap: 6px; }
+  .icon-btn { background: none; border: none; cursor: pointer; font-size: 15px; padding: 4px 6px; border-radius: 6px; transition: background 0.1s; }
+  .icon-btn:hover { background: var(--gray-light); }
+
+
+
+  /* ── LOGIN DEMO ── */
+  .login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid)); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-screen.hidden { display: none; }
+  .login-card { width: 390px; max-width: 100%; background: white; border-radius: 18px; box-shadow: 0 24px 80px rgba(0,0,0,0.28); padding: 30px; }
+  .login-logo { width: 48px; height: 48px; background: var(--accent); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 14px; }
+  .login-card h2 { font-size: 22px; color: var(--blue-dark); margin-bottom: 6px; }
+  .login-card p { font-size: 13px; color: var(--gray-text); line-height: 1.45; margin-bottom: 18px; }
+  .login-hint { background: var(--blue-light); color: var(--blue-dark); border-radius: 10px; padding: 10px 12px; font-size: 12px; margin-bottom: 18px; line-height: 1.5; }
+  .login-error { display: none; color: var(--red); font-size: 12px; margin-top: -8px; margin-bottom: 12px; font-weight: 600; }
+  .login-error.visible { display: block; }
+  .logout-btn { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 7px 10px; cursor: pointer; font-size: 12px; font-weight: 700; }
+  .logout-btn:hover { background: rgba(255,255,255,0.2); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN DEMO -->
+<div class="login-screen" id="login-screen">
+  <form class="login-card" onsubmit="handleLogin(event)">
+    <div class="login-logo">⚡</div>
+    <h2>Production Pulse AI</h2>
+    <p>Ingresá al prototipo demo para explorar el dashboard de producción, filtros, carga de artículos, exportación CSV y análisis IA simulado.</p>
+    <div class="login-hint">
+      <strong>Usuario:</strong> demo@empresa.com<br/>
+      <strong>Contraseña:</strong> demo123
+    </div>
+    <div class="form-row">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="login-email" type="email" value="demo@empresa.com" autocomplete="username" />
+    </div>
+    <div class="form-row">
+      <label class="form-label">Contraseña</label>
+      <input class="form-input" id="login-password" type="password" value="demo123" autocomplete="current-password" />
+    </div>
+    <div class="login-error" id="login-error">Credenciales incorrectas. Usá demo@empresa.com / demo123.</div>
+    <button class="btn btn-primary" type="submit" style="width:100%;padding:11px 16px;">Ingresar al dashboard</button>
+  </form>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="pulse-icon">⚡</div>
+    <div>
+      <h1>Production Pulse AI</h1>
+      <span>Panel de Control de Producción</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-badge">🤖 IA Activa</div>
+    <div class="topbar-user" title="Usuario demo">VP</div>
+    <button class="logout-btn" onclick="logoutDemo()">Salir</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Principal</div>
+    <div class="sidebar-item active"><span class="icon">📊</span> Dashboard</div>
+    <div class="sidebar-item"><span class="icon">👕</span> Artículos</div>
+    <div class="sidebar-item"><span class="icon">🏭</span> Proveedores</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Inteligencia</div>
+    <div class="sidebar-item"><span class="icon">🤖</span> Alertas IA</div>
+    <div class="sidebar-item"><span class="icon">📈</span> Reportes</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Config</div>
+    <div class="sidebar-item"><span class="icon">⚙️</span> Ajustes</div>
+    <div class="sidebar-item"><span class="icon">👤</span> Mi perfil</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-label">Total en producción</div>
+        <div class="stat-value" id="stat-total">12</div>
+        <div class="stat-sub">artículos activos</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">En tiempo</div>
+        <div class="stat-value" id="stat-ok">5</div>
+        <div class="stat-sub">sin riesgo detectado</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-label">En seguimiento</div>
+        <div class="stat-value" id="stat-warn">4</div>
+        <div class="stat-sub">requieren atención</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Críticos</div>
+        <div class="stat-value" id="stat-crit">3</div>
+        <div class="stat-sub">acción inmediata</div>
+      </div>
+    </div>
+
+    <!-- PRODUCCIÓN -->
+    <div class="section-header">
+      <div class="section-title">📋 Artículos en Producción</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ Exportar</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal()">+ Nuevo artículo</button>
+      </div>
+    </div>
+
+    <div class="filters">
+      <input class="filter-search" type="text" placeholder="🔍 Buscar artículo..." oninput="filterTable(this.value)" />
+      <select class="filter-select" onchange="filterByStatus(this.value)">
+        <option value="">Todos los estados</option>
+        <option value="En producción">En producción</option>
+        <option value="Corte">Corte</option>
+        <option value="Confección">Confección</option>
+        <option value="Terminación">Terminación</option>
+        <option value="Control de calidad">Control de calidad</option>
+        <option value="Demorado">Demorado</option>
+        <option value="Entregado">Entregado</option>
+      </select>
+      <select class="filter-select" onchange="filterByPriority(this.value)">
+        <option value="">Todas las prioridades</option>
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baja">Baja</option>
+      </select>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="prod-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Artículo</th>
+            <th>Rubro</th>
+            <th>Proveedor</th>
+            <th>Estado</th>
+            <th>Unidades</th>
+            <th>Entrega</th>
+            <th>Días restantes</th>
+            <th>Prioridad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <!-- AI PANEL -->
+    <div class="ai-panel">
+      <div class="ai-panel-header">
+        <div class="ai-panel-title">
+          <div class="ai-icon">🤖</div>
+          Análisis de Riesgo — Inteligencia Artificial
+        </div>
+        <button class="btn btn-accent btn-sm" onclick="runAI()">▶ Ejecutar análisis IA</button>
+      </div>
+      <div class="ai-panel-body">
+        <div class="ai-loading" id="ai-loading">
+          <div class="spinner"></div>
+          Analizando 12 artículos con GPT-4o... detectando riesgos y priorizando acciones...
+        </div>
+        <div class="ai-result" id="ai-result"></div>
+        <div class="ai-empty" id="ai-empty">
+          <div class="ai-empty-icon">🤖</div>
+          Presioná <strong>"Ejecutar análisis IA"</strong> para que el agente detecte artículos en riesgo y sugiera acciones priorizadas.
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL NUEVO ARTÍCULO -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">+ Nuevo Artículo en Producción</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Código</label>
+          <input class="form-input" id="f-code" placeholder="DEN-025" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Artículo</label>
+          <input class="form-input" id="f-name" placeholder="Pantalón slim fit" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Rubro</label>
+          <select class="form-select" id="f-cat">
+            <option>Denim</option><option>Remeras</option><option>Camperas</option>
+            <option>Accesorios</option><option>Calzado</option><option>Buzos</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Proveedor</label>
+          <select class="form-select" id="f-prov">
+            <option>Taller Méndez</option><option>Confec. López</option>
+            <option>Textil Sur</option><option>Taller Norte</option><option>Modas Pérez</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Unidades</label>
+          <input class="form-input" id="f-qty" type="number" placeholder="150" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Fecha de entrega</label>
+          <input class="form-input" id="f-date" type="date" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="f-state">
+            <option>En producción</option><option>Corte</option><option>Confección</option>
+            <option>Terminación</option><option>Control de calidad</option><option>Demorado</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Prioridad</label>
+          <select class="form-select" id="f-pri">
+            <option>Alta</option><option>Media</option><option>Baja</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="addArticle()">Guardar artículo</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+
+// ── LOGIN DEMO ───────────────────────────────────────────────────────────────
+function handleLogin(event) {
+  event.preventDefault();
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass = document.getElementById('login-password').value;
+  const error = document.getElementById('login-error');
+  if (email === 'demo@empresa.com' && pass === 'demo123') {
+    sessionStorage.setItem('productionPulseLoggedIn', 'true');
+    document.getElementById('login-screen').classList.add('hidden');
+    error.classList.remove('visible');
+    showToast('Sesión demo iniciada', 'success');
+  } else {
+    error.classList.add('visible');
+  }
+}
+function logoutDemo() {
+  sessionStorage.removeItem('productionPulseLoggedIn');
+  document.getElementById('login-screen').classList.remove('hidden');
+  showToast('Sesión cerrada', 'info');
+}
+function initLoginState() {
+  if (sessionStorage.getItem('productionPulseLoggedIn') === 'true') {
+    document.getElementById('login-screen').classList.add('hidden');
+  }
+}
+
+// ── DATOS DE EJEMPLO ──────────────────────────────────────────────────────────
+const today = new Date();
+function daysFromNow(d) {
+  const dt = new Date(d);
+  return Math.round((dt - today) / 86400000);
+}
+
+let articles = [
+  { code:'DEN-021', name:'Pantalón cargo denim',    cat:'Denim',       prov:'Taller Méndez',   state:'Confección',       qty:320, date:'2026-05-28', pri:'Alta'  },
+  { code:'DEN-022', name:'Jean skinny negro',        cat:'Denim',       prov:'Taller Méndez',   state:'Demorado',         qty:180, date:'2026-05-27', pri:'Alta'  },
+  { code:'REM-015', name:'Remera oversize básica',   cat:'Remeras',     prov:'Confec. López',   state:'Terminación',      qty:500, date:'2026-06-05', pri:'Media' },
+  { code:'REM-016', name:'Remera estampada v-neck',  cat:'Remeras',     prov:'Confec. López',   state:'Control de calidad',qty:240, date:'2026-06-10', pri:'Baja'  },
+  { code:'CAM-008', name:'Campera rompevientos',     cat:'Camperas',    prov:'Textil Sur',      state:'Corte',            qty:150, date:'2026-05-30', pri:'Alta'  },
+  { code:'CAM-009', name:'Campera polar unisex',     cat:'Camperas',    prov:'Textil Sur',      state:'Demorado',         qty:200, date:'2026-05-29', pri:'Alta'  },
+  { code:'BUZ-004', name:'Buzo con capucha',         cat:'Buzos',       prov:'Taller Norte',    state:'En producción',    qty:280, date:'2026-06-15', pri:'Media' },
+  { code:'BUZ-005', name:'Buzo canguro estampado',   cat:'Buzos',       prov:'Taller Norte',    state:'Confección',       qty:120, date:'2026-06-20', pri:'Baja'  },
+  { code:'ACC-011', name:'Cinturón cuero trenzado',  cat:'Accesorios',  prov:'Modas Pérez',     state:'Control de calidad',qty:400, date:'2026-06-01', pri:'Media' },
+  { code:'ACC-012', name:'Bolso shopper canvas',     cat:'Accesorios',  prov:'Modas Pérez',     state:'En producción',    qty:90,  date:'2026-06-08', pri:'Baja'  },
+  { code:'DEN-023', name:'Short denim lavado',       cat:'Denim',       prov:'Taller Méndez',   state:'Terminación',      qty:260, date:'2026-06-03', pri:'Media' },
+  { code:'DEN-024', name:'Jean mom fit elastizado',  cat:'Denim',       prov:'Confec. López',   state:'Demorado',         qty:340, date:'2026-05-26', pri:'Alta'  },
+];
+
+// ── RENDER TABLE ──────────────────────────────────────────────────────────────
+function stateClass(s) {
+  if (s === 'Demorado') return 'badge-red';
+  if (s === 'Control de calidad') return 'badge-green';
+  if (s === 'Confección' || s === 'Terminación') return 'badge-blue';
+  if (s === 'Entregado') return 'badge-gray';
+  return 'badge-orange';
+}
+function daysClass(d) {
+  if (d < 0) return 'days-crit';
+  if (d <= 5) return 'days-crit';
+  if (d <= 10) return 'days-warn';
+  return 'days-ok';
+}
+function priClass(p) {
+  if (p === 'Alta') return 'alta';
+  if (p === 'Media') return 'media';
+  return 'baja';
+}
+function priIcon(p) {
+  if (p === 'Alta') return '🔴';
+  if (p === 'Media') return '🟡';
+  return '🟢';
+}
+function progressColor(s) {
+  if (s === 'Demorado') return '#E74C3C';
+  if (s === 'Entregado' || s === 'Control de calidad') return '#27AE60';
+  return '#2E75B6';
+}
+function progressPct(s) {
+  const map = { 'Corte':15, 'En producción':25, 'Confección':50, 'Terminación':75, 'Control de calidad':90, 'Entregado':100, 'Demorado':30 };
+  return map[s] || 20;
+}
+
+let filterText = '';
+let filterStatus = '';
+let filterPriority = '';
+
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  const filtered = articles.filter(a => {
+    const t = filterText.toLowerCase();
+    const matchText = !t || a.code.toLowerCase().includes(t) || a.name.toLowerCase().includes(t) || a.prov.toLowerCase().includes(t);
+    const matchStatus = !filterStatus || a.state === filterStatus;
+    const matchPri = !filterPriority || a.pri === filterPriority;
+    return matchText && matchStatus && matchPri;
+  });
+
+  tbody.innerHTML = filtered.map((a, idx) => {
+    const days = daysFromNow(a.date);
+    const dateStr = new Date(a.date).toLocaleDateString('es-AR', { day:'2-digit', month:'short' });
+    const daysText = days < 0 ? `Vencido (${Math.abs(days)}d)` : `${days}d`;
+    const pct = progressPct(a.state);
+    return `<tr>
+      <td class="code">${a.code}</td>
+      <td><strong>${a.name}</strong></td>
+      <td><span class="badge badge-gray">${a.cat}</span></td>
+      <td>${a.prov}</td>
+      <td><span class="badge ${stateClass(a.state)}">${a.state}</span></td>
+      <td>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%;background:${progressColor(a.state)}"></div></div>
+        ${a.qty.toLocaleString()}u
+      </td>
+      <td>${dateStr}</td>
+      <td><span class="days-badge ${daysClass(days)}">${daysText}</span></td>
+      <td><span class="priority ${priClass(a.pri)}">${priIcon(a.pri)} ${a.pri}</span></td>
+      <td>
+        <div class="actions-cell">
+          <button class="icon-btn" title="Editar estado" onclick="cycleState(${idx})">🔄</button>
+          <button class="icon-btn" title="Marcar como entregado" onclick="deliver(${idx})">✅</button>
+          <button class="icon-btn" title="Ver detalle" onclick="showToast('Detalle de '+articles[${idx}].code, 'info')">👁</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  updateStats();
+}
+
+function filterTable(v) { filterText = v; renderTable(); }
+function filterByStatus(v) { filterStatus = v; renderTable(); }
+function filterByPriority(v) { filterPriority = v; renderTable(); }
+
+const states = ['Corte','En producción','Confección','Terminación','Control de calidad','Entregado'];
+function cycleState(idx) {
+  const cur = states.indexOf(articles[idx].state);
+  const next = states[(cur + 1) % states.length];
+  articles[idx].state = next;
+  showToast(`${articles[idx].code} → ${next}`, 'success');
+  renderTable();
+}
+function deliver(idx) {
+  articles[idx].state = 'Entregado';
+  showToast(`${articles[idx].code} marcado como entregado ✅`, 'success');
+  renderTable();
+}
+
+function updateStats() {
+  const total = articles.length;
+  const crit = articles.filter(a => a.state === 'Demorado' || daysFromNow(a.date) <= 3).length;
+  const warn = articles.filter(a => {
+    const d = daysFromNow(a.date);
+    return !['Entregado'].includes(a.state) && d > 3 && d <= 7;
+  }).length;
+  const ok = total - crit - warn;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-crit').textContent = crit;
+  document.getElementById('stat-warn').textContent = warn;
+  document.getElementById('stat-ok').textContent = Math.max(ok, 0);
+}
+
+// ── AI ANALYSIS ───────────────────────────────────────────────────────────────
+function runAI() {
+  document.getElementById('ai-empty').style.display = 'none';
+  document.getElementById('ai-result').classList.remove('visible');
+  document.getElementById('ai-loading').classList.add('visible');
+
+  setTimeout(() => {
+    document.getElementById('ai-loading').classList.remove('visible');
+    renderAIResult();
+  }, 2200);
+}
+
+function renderAIResult() {
+  const now = new Date().toLocaleString('es-AR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  const risks = articles
+    .filter(a => a.state === 'Demorado' || daysFromNow(a.date) <= 5)
+    .sort((a,b) => daysFromNow(a.date) - daysFromNow(b.date));
+
+  const aiAlerts = [
+    {
+      code: 'DEN-024', level: 'critical', type: 'critical',
+      text: 'Jean mom fit elastizado — Confec. López. Fecha de entrega VENCIDA. 340 unidades sin avance en estado "Demorado".',
+      action: '→ Llamar a Confec. López de inmediato. Evaluar posponer campaña de lanzamiento o redistribuir taller.'
+    },
+    {
+      code: 'DEN-022', level: 'CRÍTICO', type: 'critical',
+      text: 'Jean skinny negro — Taller Méndez. Vence en 2 días, estado "Demorado". 180 unidades en riesgo.',
+      action: '→ Contactar urgente a Taller Méndez. Si no hay avance, activar taller alternativo.'
+    },
+    {
+      code: 'DEN-021', level: 'URGENTE', type: 'warning',
+      text: 'Pantalón cargo denim — Taller Méndez. Vence en 3 días. Estado "Confección". 320 unidades. Mismo proveedor que DEN-022: riesgo de colapso de capacidad.',
+      action: '→ Priorizar sobre DEN-022 si el taller puede ejecutar. Confirmar horas disponibles.'
+    },
+    {
+      code: 'CAM-009', level: 'URGENTE', type: 'warning',
+      text: 'Campera polar unisex — Textil Sur. Vence en 4 días, estado "Demorado". 200 unidades.',
+      action: '→ Contactar Textil Sur. Verificar bloqueo de insumos. Escalar a directivo si no responde.'
+    },
+    {
+      code: 'CAM-008', level: 'ATENCIÓN', type: 'warning',
+      text: 'Campera rompevientos — Textil Sur. Vence en 5 días, estado "Corte". Mismo proveedor que CAM-009: monitorear de cerca.',
+      action: '→ Confirmar inicio de confección. Si Textil Sur está saturado, renegociar fecha.'
+    },
+  ];
+
+  const html = `
+    <div class="ai-timestamp">🕐 Análisis ejecutado el ${now} — ${articles.length} artículos procesados — ${risks.length} casos en riesgo detectados</div>
+    ${aiAlerts.map(a => `
+      <div class="ai-alert ${a.type}">
+        <div class="ai-alert-header">
+          <span class="ai-alert-code">📦 ${a.code}</span>
+          <span class="ai-alert-level">${a.level}</span>
+        </div>
+        <div class="ai-alert-text">${a.text}</div>
+        <div class="ai-alert-action">${a.action}</div>
+      </div>
+    `).join('')}
+    <div style="margin-top:16px;padding:12px 16px;background:#F0FDF4;border-radius:8px;border-left:3px solid #27AE60;">
+      <div style="font-size:12px;font-weight:700;color:#065F46;margin-bottom:4px;">✅ Sin riesgo inmediato</div>
+      <div style="font-size:13px;color:#374151;">REM-015, REM-016, BUZ-004, BUZ-005, ACC-011, ACC-012, DEN-023 — Continuar seguimiento normal.</div>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:#9CA3AF;text-align:right;">
+      Generado por Production Pulse AI · Modelo: GPT-4o · Datos al ${now}
+    </div>
+  `;
+
+  const result = document.getElementById('ai-result');
+  result.innerHTML = html;
+  result.classList.add('visible');
+  showToast('Análisis de IA completado — 5 alertas generadas', 'warning');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal').classList.add('open');
+  const d = new Date(); d.setDate(d.getDate() + 14);
+  document.getElementById('f-date').value = d.toISOString().split('T')[0];
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function addArticle() {
+  const code = document.getElementById('f-code').value.trim();
+  const name = document.getElementById('f-name').value.trim();
+  if (!code || !name) { showToast('Completá código y artículo', 'info'); return; }
+  articles.unshift({
+    code, name,
+    cat: document.getElementById('f-cat').value,
+    prov: document.getElementById('f-prov').value,
+    state: document.getElementById('f-state').value,
+    qty: parseInt(document.getElementById('f-qty').value) || 100,
+    date: document.getElementById('f-date').value,
+    pri: document.getElementById('f-pri').value,
+  });
+  closeModal();
+  renderTable();
+  showToast(`${code} agregado correctamente`, 'success');
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const headers = ['Código','Artículo','Rubro','Proveedor','Estado','Unidades','Fecha entrega','Prioridad'];
+  const rows = articles.map(a => [a.code, a.name, a.cat, a.prov, a.state, a.qty, a.date, a.pri]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'produccion_pulse.csv'; a.click();
+  showToast('CSV exportado correctamente', 'success');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+initLoginState();
+renderTable();
+</script>
+</body>
+</html>
