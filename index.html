@@ -647,24 +647,24 @@ td.code {
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-section">Principal</div>
-    <div class="sidebar-item active"><span class="icon">◈</span> Dashboard</div>
-    <div class="sidebar-item"><span class="icon">◇</span> Artículos</div>
-    <div class="sidebar-item"><span class="icon">○</span> Proveedores</div>
+    <div class="sidebar-item active" id="nav-dashboard" onclick="navTo('dashboard','nav-dashboard')"><span class="icon">◈</span> Dashboard</div>
+    <div class="sidebar-item" id="nav-articulos" onclick="navTo('articulos','nav-articulos')"><span class="icon">◇</span> Artículos</div>
+    <div class="sidebar-item" id="nav-proveedores" onclick="showComingSoon()"><span class="icon">○</span> Proveedores</div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">Inteligencia</div>
-    <div class="sidebar-item"><span class="icon">✦</span> Alertas IA</div>
-    <div class="sidebar-item"><span class="icon">↗</span> Reportes</div>
+    <div class="sidebar-item" id="nav-alertas" onclick="navTo('alertas-ia','nav-alertas')"><span class="icon">✦</span> Alertas IA</div>
+    <div class="sidebar-item" id="nav-reportes" onclick="navTo('reportes','nav-reportes')"><span class="icon">↗</span> Reportes</div>
     <div class="sidebar-divider"></div>
     <div class="sidebar-section">Config</div>
-    <div class="sidebar-item"><span class="icon">⊙</span> Ajustes</div>
-    <div class="sidebar-item"><span class="icon">◯</span> Mi perfil</div>
+    <div class="sidebar-item" onclick="showComingSoon()"><span class="icon">⊙</span> Ajustes</div>
+    <div class="sidebar-item" onclick="showComingSoon()"><span class="icon">◯</span> Mi perfil</div>
   </aside>
 
   <!-- MAIN -->
   <main class="main">
 
     <!-- HEADING -->
-    <div class="page-heading">
+    <div id="dashboard" class="page-heading">
       <h2>Dashboard de Producción</h2>
       <p>Vista general del estado actual — actualizado en tiempo real</p>
     </div>
@@ -698,7 +698,7 @@ td.code {
     </div>
 
     <!-- CHARTS -->
-    <div class="charts-grid">
+    <div id="reportes" class="charts-grid">
 
       <!-- Bar chart: articles by category -->
       <div class="chart-card">
@@ -718,7 +718,7 @@ td.code {
     </div>
 
     <!-- TABLE SECTION -->
-    <div class="section-header">
+    <div id="articulos" class="section-header">
       <div class="section-title">Artículos en Producción</div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Exportar CSV</button>
@@ -767,7 +767,7 @@ td.code {
     </div>
 
     <!-- AI PANEL -->
-    <div class="ai-panel">
+    <div id="alertas-ia" class="ai-panel">
       <div class="ai-panel-header">
         <div class="ai-panel-title">
           <div class="ai-icon">✦</div>
@@ -854,6 +854,24 @@ td.code {
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="addArticle()">Guardar artículo</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMING SOON MODAL -->
+<div class="modal-overlay" id="coming-soon-overlay">
+  <div class="modal" style="width:400px;">
+    <div class="modal-header">
+      <div class="modal-title">Módulo no disponible</div>
+      <button class="modal-close" onclick="closeComingSoon()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:36px 28px;">
+      <div style="font-size:36px;margin-bottom:16px;opacity:0.4;">◎</div>
+      <p style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--ink);margin-bottom:10px;">Próximamente</p>
+      <p style="font-size:13px;color:var(--gray-text);line-height:1.6;">Módulo previsto para próxima versión del prototipo.</p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;padding-bottom:28px;">
+      <button class="btn btn-primary" onclick="closeComingSoon()">Entendido</button>
     </div>
   </div>
 </div>
@@ -1174,6 +1192,33 @@ function showToast(msg, type) {
   t.className   = 'toast ' + (type || '');
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── SIDEBAR NAVIGATION ────────────────────────────────────────────────────────
+const navItems = ['nav-dashboard','nav-articulos','nav-alertas','nav-reportes'];
+
+function navTo(sectionId, navId) {
+  // update active state
+  navItems.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  if (navId) {
+    const active = document.getElementById(navId);
+    if (active) active.classList.add('active');
+  }
+  // scroll to section
+  const target = document.getElementById(sectionId);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function showComingSoon() {
+  document.getElementById('coming-soon-overlay').classList.add('open');
+}
+function closeComingSoon() {
+  document.getElementById('coming-soon-overlay').classList.remove('open');
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
